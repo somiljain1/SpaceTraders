@@ -1,4 +1,6 @@
 # SpaceTrader - YeetCode
-This is our CS 2340 Project where we are making the game Space Traders using Python Flask.
+Built the game Space Traders using Python Flask. Space Trader is a classic strategy video game about space travel and exploration.Players typically begin the game in a randomly generated galaxy with a small spaceship and a starting number of credits (money). From then on, there are several potential ways to gain more credits, upgrade ships, interact with NPCs, explore the universe, trade in foreign markets, etc. Trading in different regions of the universe is one of the main focuses of Space Trader. To trade, players are able to buy and sell different commodities in each sub-region, with their prices and quantities dictated by factors like: a sub-region’s technological level, its political system, and current events. The player’s initial ship will hold only a small amount of cargo for trading, however as the player progresses, they are able to purchase larger ships with greater cargo holds.
 
-[Use Case Diagram](https://www.draw.io/?state=%7B%22ids%22:%5B%221r4Tv9P3DhdXIwqTbXobqG4zwzpeq0UZY%22%5D,%22action%22:%22open%22,%22userId%22:%22101573365231994415164%22%7D#G1r4Tv9P3DhdXIwqTbXobqG4zwzpeq0UZY)
+Repository also contains diagrams to explain game flow
+
+
