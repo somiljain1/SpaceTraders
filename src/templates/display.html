@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+    <h1>Display Screen</h1>
+
+    <h3>Player stats</h3>
+    <h4> Player Name: {{ name }} </h4>
+    <h4 id = "Difficulty"> Difficulty: {{ difficulty }} </h4>
+    <h4> Pilot Skill Points: {{ pilotskills }} </h4>
+    <h4> Fighter Skill Points: {{ fighterskills }} </h4>
+    <h4> Merchant Skill Points: {{ merchantskills }} </h4>
+    <h4> Engineer Skill Points: {{ engineerskills }} </h4>
+    <h4 id = "Credits"> Credits </h4>
+
+    <h3>Ship Stats</h3>
+    <h4>Ship Name: {{ ship_type }}</h3>
+    <h4>Current Fuel: {{ fuel }}</h4>
+    <h4>Current Cargo: {{ cargo }}</h4>
+    <h4>Current Health: {{ health }}</h4>
+
+    <a href="universe"><button onclick="startGame()">Start Game</button></a>
+
+    <script>
+        var difficulty = document.getElementById("Difficulty");
+        var credits = document.getElementById("Credits");
+        if (difficulty.innerHTML.includes('Easy')) {
+            credits.innerHTML = 'Credits: 1000';
+        }
+        if (difficulty.innerHTML.includes('Medium')) {
+            credits.innerHTML = 'Credits: 500';
+        }
+        if (difficulty.innerHTML.includes('Hard')) {
+            credits.innerHTML = 'Credits: 100';
+        }
+
+        function startGame() {
+            console.log('game started');
+        }
+
+    </script>
+{% endblock content %}

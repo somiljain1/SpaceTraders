@@ -1,0 +1,187 @@
+{% extends 'layout.html' %}
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+<center>
+<body onload = "init()">
+    <input type = "hidden" id = "selectedItem" name = "selectedItem" value = "Berries">
+    <h1>Market</h1>
+    <h5 id="techlevel"> Market Tech Level: {{techlevel}} </h5>
+    <h5 id="credits"> Credits: {{credits}} </h5> 
+    <button onclick = "location.href = '/universe';"> Leave Market </button>
+
+    <table style="width:100%" id="item_table">
+        <tr>
+            <th>Item</th>
+            <th>Buy Price</th>
+            <th>Sell Price</th>
+        </tr>
+    </table>
+
+    <button onclick="buy()">Buy</button>
+    <button onclick="sell()">Sell</button>
+</center>
+
+<h4>Player's Inventory: </h4>
+<h4 id = "inventory"> </h4>
+</body>
+
+
+<script>
+    var itemTable = document.getElementById("item_table")
+    var items = JSON.parse({{market|tojson}})
+    //console.log(items)
+    //if the inventory is not empty, we parse and render it
+    if (JSON.parse({{inventory_status|tojson}} == false)) {
+        var player_inventory = JSON.parse({{inventory|tojson}})
+        updatePlayerInventory(player_inventory)
+    }
+
+    function init() {
+        items.forEach(addTableRow)
+
+        function addTableRow(item, i) {
+            var row = itemTable.insertRow(i + 1); //i + 1 so we add underneath the header row
+            var name = row.insertCell(0);
+            var buyprice = row.insertCell(1);
+            var sellprice = row.insertCell(2);
+
+            name.innerHTML = item.Name
+            buyprice.innerHTML = item.Buy_Price
+
+            if (item.Name.includes("Universe")) {
+                var buyNumberWheel = document.createElement("select")
+                buyNumberWheel.style.cssFloat = "right"
+
+                for (var i = 0; i < 2; i++) {
+                    var number = document.createElement("option")
+                    number.text = i
+                    number.value = i
+                    buyNumberWheel.options.add(number)
+                }
+                buyprice.append(buyNumberWheel);
+
+                sellprice.innerHTML = "Can't sell this :)"
+            } else {
+                var buyNumberWheel = document.createElement("select")
+                initNumberWheel(buyNumberWheel)
+                buyNumberWheel.style.cssFloat = "right"
+
+                var sellNumberWheel = document.createElement("select")
+                initNumberWheel(sellNumberWheel)
+                sellNumberWheel.style.cssFloat = "right"
+
+                buyprice.append(buyNumberWheel);
+                sellprice.innerHTML = item.Sell_Price
+                sellprice.append(sellNumberWheel)
+            }
+            
+            i++
+        }
+
+        /*
+        Creates a number select with values 0-20
+        */
+        function initNumberWheel(numberWheel) {
+            for (var i = 0; i < 21; i++) {
+                var number = document.createElement("option")
+                number.text = i
+                number.value = i
+                numberWheel.options.add(number)
+            }
+        }
+    }
+
+    function resetNumberWheels() {
+        var tablerows = document.getElementsByTagName("tr")
+        for (var i = 1; i < tablerows.length; i++) {
+            var curr = tablerows[i]
+            var buyNumberWheel = curr.getElementsByTagName("select")[0]
+            
+            //universe has no sell wheel
+            if (!curr.getElementsByTagName("td")[0].innerHTML.includes("Universe")) {
+                var sellNumberWheel = curr.getElementsByTagName("select")[1]
+                sellNumberWheel.selectedIndex = 0
+            }
+            
+            buyNumberWheel.selectedIndex = 0
+        }
+    }
+
+    function updatePlayerCredits(credits) {
+        document.getElementById("credits").innerHTML = "Credits: " + credits;
+    }
+
+    function updatePlayerInventory(playerInventory) {
+        var inventory = document.getElementById("inventory")
+        inventory.innerHTML = ""
+        for (var i = 0; i < playerInventory.length; i++) {
+            var name = playerInventory[i].Name
+            var quantity = playerInventory[i].Quantity
+            inventory.innerHTML += name + ": " + quantity + "\n"
+        }
+        resetNumberWheels()
+    }
+
+    function buy() {
+        var json = [];
+        json = getItemJSON(false)
+        $.post("/buy", {items: JSON.stringify(json)}, function(data){
+            if (JSON.parse(data).result == "fail"){
+                alert("Did not have enough credits to purchase specified items.")
+            } else if (JSON.parse(data).result == "winner") {
+                window.location.href = "/winnerOfTheGame" //make it kinda hard to guess
+            } else {
+                updatePlayerCredits(JSON.parse(data).credits)
+                var inventory = JSON.parse(JSON.parse(data).inventory)
+                updatePlayerInventory(inventory)
+            }
+        });
+    }
+
+    function sell() {
+        var json = []
+        json = getItemJSON(true)
+        console.log(JSON.stringify(json))
+        $.post("/sell", {items: JSON.stringify(json)}, function(data){
+            if (JSON.parse(data).result == "fail") {
+                alert("You do not have enough of these items to sell that much!")
+            } else {
+                updatePlayerCredits(JSON.parse(data).credits)
+                var inventory = JSON.parse(JSON.parse(data).inventory)
+                updatePlayerInventory(inventory)
+            }
+        });
+
+    }
+
+    function getItemJSON(isSellOrder) {
+        var json = [];
+        var index = 0; //0 = buy 1 = sell
+        if (isSellOrder) {
+            index = 1;
+        } 
+
+        var tablerows = document.getElementsByTagName("tr")
+        for (var i = 1; i < tablerows.length; i++) {
+            var curr = tablerows[i]
+            var itemName = curr.getElementsByTagName("td")[0].innerHTML
+            var numberWheel = curr.getElementsByTagName("select")[index]
+            var quantity = numberWheel.options[numberWheel.selectedIndex].innerHTML
+            if (quantity != 0) {
+                var itemJSON = new Object()
+                itemJSON.Name = itemName
+                itemJSON.Quantity = quantity
+                json.push(itemJSON)
+                //add JSON of indiviual item
+            }
+        }   
+        return json;
+    }
+
+
+</script>
+
+{% endblock content %}

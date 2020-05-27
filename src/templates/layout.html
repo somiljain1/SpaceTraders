@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% if title %}
+        <title>Space Traders - {{ title }}</title>
+    {% else %}
+        <title>Space Traders</title>
+    {% endif %}
+    
+    <title></title>
+    {% block head %} 
+    <link rel="stylesheet" href=" {{ url_for('static', filename='css/mainmenu.css') }}">
+    <link rel="shortcut icon" href="https://ramblinwreck.com/wp-content/uploads/2018/06/Georgia-Tech-new-logo-1.jpg">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    {% endblock %}
+</head>
+<body>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

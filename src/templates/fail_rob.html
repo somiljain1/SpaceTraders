@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+<h1>Yikers! You failed to rob the trader!</h1>
+<h2>Trader damaged your ship! Your ship's health is now: {{ health }} </h2>
+{% endblock content %}

@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<style type="text/css">
+    body {
+        background: url("../static/img/earth.jpg");
+        background-size: 100%;
+        color: white;
+        font-size: 15px;
+    }
+</style>
+{% endblock head %}
+
+{% block content %}
+    {{ super() }}
+    <center>
+    <body>
+        <h1>Space Traders</h1>
+        <a href= "config"><button>Start Game</button></a>
+    </body>
+    </center>
+    
+{% endblock content %}

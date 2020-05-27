@@ -1,0 +1,44 @@
+h1 {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 50pt;
+}
+body {
+    background-color: darkslategray;
+    height: 100%;
+    color: white;
+    font-size: 20pt;
+}
+
+#parent {
+    position: relative;
+}
+
+#parent img {
+    width: 430px;
+    height: 750px;
+    position: absolute;
+    top: 0px;
+    left:20px;
+}
+
+#skillPointCounter {
+    position: absolute;
+    top: 120px;
+    left: 1100px;
+}
+
+table, th, td {
+    border: 1px solid white;
+}
+
+input[
+    type=number] {
+    width: 4%;
+    background-color: white;
+}
+
+canvas {
+    border: 1px solid black;
+    height: 100%;
+    width: 100%;
+}

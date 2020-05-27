@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href=" {{ url_for('static', filename='css/police.css') }}">
+{% endblock head %}
+
+{% block content %}
+
+
+<center>
+<div id = "header">
+    <img src = "../static/img/trader.jpg" width="300" height="450"/>
+</div>
+<div class = "container">
+    <p id = "EncounterMessage"> 
+        Before you depart to your destination, you encounter a Trader!
+        The trader offers you a specific amount of an item for an extrordinary price. <br>
+        You keep your weapons loaded just in case you want to rob him. <br /> <br />
+        "Can I interest you in a purchase? My prices are dirt cheap haha."
+    </p>
+</div>
+
+    <!-- <h1 id = "EncounterMessage">You've encountered a Trader!</h1> -->
+    <h3>Trader wants to sell <i>{{ item_amount }} {{ item_to_sell }}</i> for a total price of:</h3 >
+    <h2 id = "itemPrice">Price: {{ item_price }} credits</h4>
+    
+    <button id = "buyButton" type = "button" onclick = "buy_trader_item()"> Buy Items </button>
+    <button id = "continueTravelButton" type = "button" onclick = "continue_travel()"> Continue Travel</button>
+    <button id = "robButton" type = "button" onclick = "attemptRob()"> Rob Trader (Fighter Skills: {{ fskills }})</button>
+    <button id = "negotiateButton" type = "button" onclick = "attemptNegotiate()"> Negotiate Price (Merchant Skills: {{ mskills }})</button>
+</center>
+<h4 id = "credits">Credits: {{ credits }}</h4>
+<!-- <h4 id = "inventoryDoc">Inventory: {{ inventory }}</h4> -->
+<h4 id = "healthDoc">Ship Health: {{ health }}</h4>
+
+<script>
+    var EncounterMessage = document.getElementById("EncounterMessage");
+    var itemPrice = document.getElementById("itemPrice");
+    var healthDoc = document.getElementById("healthDoc");
+    // var inventoryDoc = document.getElementById("inventoryDoc");
+
+    //player attempts to rob trader
+    function attemptRob() {
+        $.get("/attempt_rob", function(data) {
+            //var rob_attempt = JSON.parse(data).rob_attempt; //either true or false
+            // if (rob_attempt == true) {
+            //     success_rob();
+            // } else {
+            //     console.log('fail');
+            //     fail_rob();
+            // }
+            var message = JSON.parse(data).message;
+            var health = JSON.parse(data).health;
+            var inventory = JSON.parse(data).inventory;
+            
+            EncounterMessage.innerHTML = message;
+            //live rendering does not work for some reason, needs refresh
+            healthDoc.innerHTML = 'Ship Health: ' + health;
+            // inventoryDoc.innerHTML = 'Inventory: ' + inventory;
+            console.log(health);
+            console.log(inventory);
+        })
+        document.getElementById("negotiateButton").disabled = true;
+        document.getElementById("robButton").disabled = true;
+        document.getElementById("buyButton").disabled = true;
+    }
+
+    // //successful rob, takes trader's items
+    // function success_rob() {
+    //     $.get("/success_rob", function(data) {
+    //         window.location.replace('/success_rob_page');
+    //     })
+    // }
+
+    // //if player fails to rob trader, player is taken to fail_rob.html
+    // function fail_rob() {
+    //     $.get("/fail_rob", function(data) {
+    //         window.location.replace('/fail_rob_page');
+    //     })
+    // }
+
+    //continue traveling to original location
+    function continue_travel() {
+        $.get("continue_travel", function(data) {
+            window.location.replace("/universe");
+        })
+    }
+
+    function attemptNegotiate() {
+        $.get("/attempt_neg", function(data) {
+            var message = JSON.parse(data).message;
+            var new_price = JSON.parse(data).new_price;
+            //updates message
+            EncounterMessage.innerHTML = message;
+            //updates price of item
+            itemPrice.innerHTML = 'New price: ' + new_price + ' credits';
+            document.getElementById("negotiateButton").disabled = true;
+        })
+    }
+
+    function buy_trader_item() {
+        $.get("/buy_trader_item", function(data) {
+            console.log('Player is buying from trader');
+            var inventory = JSON.parse(data).Inventory;
+            console.log(inventory);
+            // location.reload();
+            continue_travel();
+            // document.getElementById("inventory").innerHTML = "Player's inventory: " + inventory;
+        })
+    }
+
+</script>
+
+{% endblock content %}

@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+<body>
+    <center>
+            <h1>Mechanic's Shop</h1>
+            <a href="universe"><button onclick="">Leave Mechanic's Shop</button></a>
+            <h3>Player's credits: {{credits}} </h3>
+            <h3>Ship fuel: {{fuel}} </h3>
+            <h3>Ship's health: {{health}}</h3>
+    </center>
+    <h2>Refuel</h2>
+    <table style="width:100%" id="item_table">
+            <tr>
+                <th>Fuel</th>
+                <th>Buy Price</th>
+                <th>Buy</th>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>10 Credits</td>
+                <td><button onclick="refuel(10, 10)">Buy</button></td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>15 Credits</td>
+                <td><button onclick="refuel(20, 15)">Buy</button></td>
+            </tr>
+            <tr>
+                <td>30</td>
+                <td>17 Credits</td>
+                <td><button onclick="refuel(30, 17)">Buy</button></td>
+            </tr>
+        </table>
+    </table>
+
+    <h2>Repair Ship</h2>
+    <table style="width:100%" id="item_table">
+            <tr>
+                <th>Ship Health</th>
+                <th>Buy Price</th>
+                <th>Buy</th>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>{{prices[0]}} Credits</td>
+                <td><button onclick="repair(0, 10)">Buy</button></td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>{{prices[1]}} Credits</td>
+                <td><button onclick="repair(1, 20)">Buy</button></td>
+            </tr>
+            <tr>
+                <td>30</td>
+                <td>{{prices[2]}} Credits</td>
+                <td><button onclick="repair(2, 30)">Buy</button></td>
+            </tr>
+        </table>
+    </table>
+    
+        
+</body>
+
+
+<script>
+    function refuel(fuel, price) {
+        $.post("/refuel", {"fuel": fuel, "price": price}, function(data) {
+            location.reload();
+            var message = JSON.parse(data).message;
+            if (message != "True") {
+                window.alert(message);
+            }
+        });
+    }
+
+    function repair(index, health) {
+        $.post("/repair", {"index": index, "health": health}, function(data) {
+            location.reload();
+            var message = JSON.parse(data).message;
+            if (message != "True") {
+                window.alert(message);
+            }
+        });
+    }
+</script>
+{% endblock content %}

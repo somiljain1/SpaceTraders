@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+<body>
+        <center>
+                <div id="parent">
+                        <img src = "../static/img/star_lord.png"/>
+                        <div id = "skillPointCounter">Skill Points: 16</div>
+                        <div id="Stats">
+                            
+                        </div>
+                        <h1> Create Player</h1>
+                    
+                        <form action = "/display" onsubmit = "return validateInput()" method = "POST">
+                            Player Name:
+                            <input type = "text" id = "name" name = "name"> <br>
+                    
+                            <input type = "hidden" id = "selectedship" name = "selectedship" value = "Jet">
+                            Choose your Ship: <br>
+                            <input type = "radio" name = "ship" value = "Jet" checked onclick = "recalcShip()"> Jet <br>
+                            <input type = "radio" name = "ship" value = "Starship" onclick = "recalcShip()"> Starship <br>
+                            <input type = "radio" name = "ship" value = "Cargo Plane" onclick = "recalcShip()"> Cargo Plane <br>
+                            <input type = "radio" name = "ship" value = "Lady Bug" onclick = "recalcShip()"> Lady Bug <br>
+                            <input type = "radio" name = "ship" value = "Yellow Jacket" onclick = "recalcShip()"> Yellow Jacket <br>
+                            <br>
+                        
+                            <input type = "hidden" id = "selecteddifficulty" name = "selecteddifficulty" value = "Easy">
+                            Choose Difficulty:
+                            <input type = "radio" name = "difficulty" value = "Easy" checked onclick="recalcSP()"> Easy
+                            <input type = "radio" name = "difficulty" value = "Medium" onclick = "recalcSP()"> Medium
+                            <input type = "radio" name = "difficulty" value = "Hard" onclick = "recalcSP()"> Hard 
+                            
+                            <br>
+                    
+                            Pilot skill points:
+                            <input type = "number" id = "pilotskills" name = "ps" value = 0> <br>
+                            Fighter skill points:
+                            <input type = "number" id = "fighterskills" name = "fs" value = 0> <br>
+                            Merchant skill points:
+                            <input type = "number" id = "merchantskills" name = "ms" value = 0> <br>
+                            Engineer skill points:
+                            <input type = "number" id = "engineerskills" name = "es" value = 0> <br>
+                            
+                            <input type = "submit" id = "submitButton" value = "Submit">
+                        </form>        
+                </div>
+                </center>
+</body>
+    
+
+    <script type="text/javascript">
+    var skillPoints;
+    var difficulty = document.getElementsByName("difficulty");
+    var ship = document.getElementsByName('ship');
+
+    function recalcSP() {
+        for (i = 0; i < difficulty.length; i++) {
+            if (difficulty[i].checked) {
+                document.getElementById('selecteddifficulty').value = document.getElementsByName("difficulty")[i].value;
+                console.log(document.getElementById('selecteddifficulty').value)
+                skillPoints = 4 * (4 - i);
+            }
+        }
+        document.getElementById("skillPointCounter").innerHTML = "Skill Points: " + skillPoints;
+        return skillPoints;
+    }
+
+    function recalcShip() {
+        for (i = 0; i < ship.length; i++) {
+            if (ship[i].checked) {
+                document.getElementById('selectedship').value = document.getElementsByName('ship')[i].value;
+                console.log(document.getElementById('selectedship').value);
+            }
+        }
+    }
+
+    function validateInput() {
+        var skillPoints = recalcSP();
+        var pilotskills =  parseInt(document.getElementById('pilotskills').value);
+        var fighterskills = parseInt(document.getElementById('fighterskills').value);
+        var merchantskills = parseInt(document.getElementById('merchantskills').value);
+        var engineerskills = parseInt(document.getElementById('engineerskills').value);
+        var pointsAllocated = pilotskills + fighterskills + merchantskills + engineerskills;
+
+        if (document.getElementById("name").value === '') {
+            alert('Error: Please enter a name for the player');
+            return false;
+        }
+        if (document.getElementById("selectedship"))
+        //console.log(pilotskills + fighterskills);
+        if (pointsAllocated > skillPoints || pilotskills < 0 || fighterskills < 0 
+                || merchantskills < 0 || engineerskills < 0) {
+            alert('Error: Exceeded skill points or negative points allocated');
+            return false;
+        } else {
+            if (pointsAllocated < skillPoints) {
+                var result = confirm("You have not allocated all of your skill points. Do you still want to proceed?");
+                if (result === false) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    </script>
+{% endblock content %}

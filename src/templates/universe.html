@@ -1,0 +1,187 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block content %}
+<body onload = "init()">
+    <h2 id = "PlayerInfo"></h2>
+    <h2>Player's Inventory: {{ inventory }}</h2>
+    <h2 id = "ShipInfo"></h2>
+    <a href="mechanic"><button onclick="">Mechanic's Shop</button></a>
+
+    <center>
+    <div id = "CurrentRegion"> 
+        <h4 id = "CurrentRegionName"></h4>
+        <h4 id = "CurrentRegionCoords"></h4> 
+        <h4 id = "CurrentRegionTechLevel"></h4>
+    </div>
+    <select id = "RegionList"></select>
+    <button type = "button" onclick = "travelToRegion()"> Travel! </button>
+    <br>
+    <br>
+    <form action = "/market" method="POST">
+        <input type = "hidden" id = "tlevel" name = "techlevel">
+        <input type = "submit" onclick = "return setData();" value = "Go to Market">
+    </form>
+    </center>
+</body>
+
+<script>
+    //ignore the errors showing up, but if you can remove them lmk
+    var ship = JSON.parse({{ ship|tojson }});
+    var fuel = ship.Fuel;
+    console.log('hi this ship fuel: +' + fuel);
+    var player1 = JSON.parse({{ player|tojson }});
+    var universe = JSON.parse({{ universe|tojson }});
+    console.log(player1.Credits);
+    console.log(universe)
+    document.getElementById("PlayerInfo").innerHTML = 'Player: ' + player1.Name + ' has ' + player1.Credits + ' credits'
+    document.getElementById("ShipInfo").innerHTML = 'Ship: ' + ship.ShipType + ' has ' + ship.Fuel + ' fuel cap';
+    var regionList = document.getElementById("RegionList");
+    var currentRegionName = document.getElementById("CurrentRegionName");
+    var currentRegionCoords = document.getElementById("CurrentRegionCoords");
+    var currentRegionTechLevel = document.getElementById("CurrentRegionTechLevel");
+
+    function setData() {
+        document.getElementById("tlevel").value = currentRegionTechLevel.innerHTML.split("Level: ")[1]
+        return true
+    }
+
+    function travelToRegion() {
+        var nextRegion = universe[regionList.selectedIndex];
+
+        var selectedRegionText = regionList.options[regionList.selectedIndex].text
+
+        var distance = selectedRegionText.split("Distance: ")[1].split(" ")[0]
+        var fuelcost = calculate_fuelcost(distance)
+        var newfuelcost = Math.max(3, calculate_pilotskillsfuel(fuelcost))
+
+        if (newfuelcost <= fuel) {
+            //we want to see if get an NPC before we travel to the next region
+            //store the next region in a post request and send to satellite pages
+            chanceNPC(nextRegion.Name, Math.round(fuel - newfuelcost, 2), function(npc) {
+                if (!npc) {
+                    //no npc, proceed normally by updating region and fuel
+                    currentRegionName.innerHTML = "Region Name: " + nextRegion.Name;
+                    currentRegionCoords.innerHTML = "Region Coordinates: (" + nextRegion.Coordinates + ")";  
+                    currentRegionTechLevel.innerHTML = "Region Tech Level: " + nextRegion.TechLevel;
+
+                    for (i = 0; i < regionList.options.length; i++) {
+                        updateRegionList(nextRegion, universe[i], i)
+                    }
+
+                    fuel = Math.round(fuel - newfuelcost, 2)
+
+                    updateShipStats();
+
+                    //we just want to update the current region and fuel on server, no callback required
+                    $.post("/update_stats", {"nextRegionName": currentRegionName.innerHTML.split("Name: ")[1], "fuel": fuel})
+                }
+            });
+
+        } else {
+            alert('Error: Exceeded current fuel');
+        }
+        // console.log('random NPC possibly');
+    }
+
+    //sends post request to app.py, renders new page if encounter
+    //the potential new region and fuel vars just in case the outcome is such that the player travels to a new planet or not
+    //callback to update region fuel if no npc
+    function chanceNPC(potentialNewRegion, potentialNewFuel, callback) {
+        $.post("/chance_NPC", {"region": potentialNewRegion, "fuel": potentialNewFuel}, function(data) {
+            console.log(JSON.parse(data).result);
+            if (JSON.parse(data).result == "npc"){
+                callback(true)
+                window.location.href = JSON.parse(data).page;
+            } else {
+                callback(false);
+            }
+        })
+    }
+
+    function updateShipStats() {
+        document.getElementById("ShipInfo").innerHTML = 'Ship: ' + ship.ShipType + ' has ' + fuel + ' fuel cap';
+    }
+
+    function updateRegionList(nextRegion, region, index) {
+        calcDistance(nextRegion.Name, region.Name, function(newDistance) {
+            var sub = regionList.options[index].text.split(")")[0]
+            var fuelcost = calculate_fuelcost(newDistance)
+            var newfuelcost = Math.max(3, calculate_pilotskillsfuel(fuelcost))
+            sub += ") Distance: " + newDistance + " Fuel Cost:" + newfuelcost
+            regionList.options[index].text = sub
+        })
+    }
+
+    function calcDistance(region1, region2, callback) {
+        $.post("/calc_distance", {r1: region1, r2: region2}, function(data) {
+            callback(JSON.parse(data).distance)
+        });
+    }
+    function calculate_fuelcost(distance) {
+        return distance/8;
+    } 
+
+    function calculate_pilotskillsfuel(fuel) {
+        added_fuel = player1.PilotSkills * 1.5
+        //console.log(player1.PilotSkills)
+        //console.log(added_fuel)
+        newfuel = fuel - added_fuel
+        //currentship = player.ship.get_fuel()
+
+        return newfuel;
+    } 
+
+    //called on page startup
+    function init(){
+        //load items into the dropdown
+        var index = Math.floor(Math.random() * 10);
+        var selectedRegion = universe[index];
+        $.get("/current_region", function(data) {
+            var parsedData = JSON.parse(data)
+            currentRegionName.innerHTML = "Region Name: " + parsedData.name
+            currentRegionCoords.innerHTML = "Region Coordinates: (" + parsedData.coordinates + ")"
+            currentRegionTechLevel.innerHTML = "Region Tech Level: " + parsedData.techlevel
+
+
+            i = 0;
+            printRegionsInOrder();
+
+            //the rendering of the regions in the dropdown was asynchronous
+            function printRegionsInOrder() {
+                initRegionList(universe[i], i, function(data) {
+                    if (data == universe.length) {
+                        return;
+                    }
+                    i = data
+                    printRegionsInOrder()
+                })
+
+            }
+
+            function initRegionList(item, i, callback) {
+                var region = document.createElement("option")
+                //with single argument variables sent from python, tojson turns them into strings 
+                calcDistance(parsedData.name, item.Name, function(distance) {
+                    var fuelcost = calculate_fuelcost(distance)
+                    console.log(fuelcost)
+                    var newfuelcost = Math.max(3, calculate_pilotskillsfuel(fuelcost))
+                    if (distance == 0) {
+                        newfuelcost = 0;
+                    }
+                    console.log("Dist")
+                    console.log(distance)
+                    console.log(newfuelcost)
+                    region.text = item.Name + "(" + item.Coordinates + ")" + " Distance: " + distance + " Fuel Cost:" + newfuelcost
+                    regionList.appendChild(region)
+                    callback(++i);
+                })
+            }
+        })
+    }
+</script>
+
+{% endblock content %}

@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href=" {{ url_for('static', filename='css/police.css') }}">
+{% endblock head %}
+
+{% block content %}
+<h1>Bandit Encounter!</h1>
+<h1>Ok boomer, Bandit wants to rob you of {{ credits_demanded }} credits</h1>
+<div id = "header">
+    <img src = "../static/img/bandit.jpg"/>
+</div>
+<div class = "container">
+    <p id = "intro"> 
+        Before you depart to your destination, you see a Bandit!"
+    </p>
+    <div id = "demandBox">
+        <p id = "demandText">
+            The bandit demands: {{ credits_demanded }} credits<br /> <br /> 
+        </p>
+        <p id = "itemText"> </p>
+    </div>
+</div>
+<div id = "buttons">
+    <button class = "options" onclick = "pay()"> Pay the Bandit! </button>
+    <button class = "options" onclick = "fight()"> Fight (Fighter Skills: {{fskills}}) </button>
+    <button class = "options" onclick = "flee()"> Flee (Pilot Skills: {{pskills}}) </button>
+</div>
+</body>
+
+<script>
+    function pay() {
+        $.post("/bandit_pay", {}, function(data) {
+            data = JSON.parse(data)
+
+            if (data["result"] == "lose_credits") {
+                document.getElementById("intro").innerHTML = "The bandit takes your credits. <br> <br> \"Thanks for the cash.\" ";
+            } else if (data["result"] == "lose_inventory") {
+                document.getElementById("intro").innerHTML = "The bandit takes your whole inventory. <br> <br> \"See ya.\" ";
+            } else {
+                document.getElementById("intro").innerHTML = "The bandit damages your ship. <br> <br> \"Sorry not sorry.\" ";
+            }
+            
+            loadNewButtons();
+        })
+    }
+
+    function fight() {
+        $.post("/bandit_fight", {}, function(data) {
+            data = JSON.parse(data);
+            var credits_won = data["credits_won"]
+
+            document.getElementById("intro").innerHTML = "Holding your breath, you swing at the bandit. <br> <br>"
+
+            if (data["result"] == "success") {
+                document.getElementById("intro").innerHTML += "Fortunately enough, your superior fighting skills allow you to emerge victorious. <br>";
+                document.getElementById("demandText").innerHTML = "Congrats, you lawless renegade. <br> <br> Credits Won: " + credits_won;
+            } else {
+                var credits = data["credits"]
+                var lostHealth = data["health_penalty"]
+                var health = data["health"]
+
+                document.getElementById("intro").innerHTML += "Unfortunately, the bandit destroyed you. <br> <br>";
+                document.getElementById("intro").innerHTML += "Get rekt buddy: <br>";            
+    
+                document.getElementById("demandText").innerHTML = "Penalties: <br><br> You lost " + lostHealth + " health. <br> You now have " + health + " hitpoints left <br> <br> Oh, you also now have " + credits + " credits.";
+                
+            }
+
+            loadNewButtons();
+        })
+    }
+
+    function flee() {
+        $.post("/bandit_flee", {}, function(data) {
+            data = JSON.parse(data);
+            var intro = document.getElementById("intro");
+            intro.innerHTML = "Without hesitating, you set the engines to full power and speed away in a desperate attempt to evade the bandit. <br> <br>"
+
+            if (data["result"] == "success") {
+                intro.innerHTML += "Thanks to your pilot training and some luck, you manage to avoid the bandit. <br>"
+                document.getElementById("demandText").innerHTML = "Nice flying, ace."
+            } else {
+                var credits = data["credits"];
+                var health = data["health"];
+                var lostHealth = data["health_penalty"];
+                var lostCredits = data["credit_penalty"];
+
+                intro.innerHTML += "Though you give it your best effort, your ship is eventually found by the bandit and captured. <br> <br>"
+                document.getElementById("demandText").innerHTML = "Penalties: <br><br> You lost " + lostHealth + " health. <br> You now have " + health + " hitpoints left. <br> <br> Oh, you also now have " + credits + " credits.";
+            }
+
+            loadNewButtons();
+        })
+    }
+
+    function loadNewButtons() {
+        var buttons = document.getElementsByClassName("options")
+
+        for (var i = 0; i < buttons.length; i ++) {
+            buttons[i].style.display = 'none';
+        }
+        renderReturnButton();
+    }
+
+    function renderReturnButton() {
+        var returnButton = document.createElement("BUTTON");
+        returnButton.innerHTML = "Continue";
+        document.getElementById("buttons").appendChild(returnButton);
+
+        returnButton.onclick = function() { window.location.href = "/universe"}
+    }
+</script>
+{% endblock content %}
+}

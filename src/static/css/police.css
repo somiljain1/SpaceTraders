@@ -1,0 +1,47 @@
+.container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+
+    border-style: solid;
+    border-width: 2px;
+    border-color: white;
+
+    margin: auto;
+    max-width: 90%;
+    
+    font-size: 1.5vw;
+}
+
+#intro {
+    padding-right: 10px;
+    border-right: 2px solid white;
+    flex-basis: 50%;
+}
+
+#EncounterMessage {
+    padding-right: 10px;
+    border-right: 2px solid white;
+    flex-basis: 50%;
+}
+
+#header {
+    margin: auto;
+    max-width: 50%;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#demandBox {
+    flex-basis: 25%;
+    padding-left: 20px;
+    padding-right: 10px;
+    text-align: center;
+}
+
+#buttons {
+    text-align: center;
+}

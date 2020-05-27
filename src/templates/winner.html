@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href=" {{ url_for('static', filename='css/winner.css') }}">
+{% endblock head %}
+
+{% block content %}
+<div class = 'container'>
+    <img src = "../static/img/fireworks.gif"/>
+    <h1> You win! </h1>
+    <img src = "../static/img/fireworks.gif"/>
+</div>
+<form action = '/newgame' style = "text-align: center;">
+    <p> You beat the game! But can you do better? </p>
+    <input type = 'submit' value = 'Start New Game'>
+</form>
+{% endblock content %}

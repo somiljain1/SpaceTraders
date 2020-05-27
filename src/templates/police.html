@@ -1,0 +1,149 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href=" {{ url_for('static', filename='css/police.css') }}">
+{% endblock head %}
+
+{% block content %}
+<body onload = "init()">
+    <div id = "header">
+        <img src = "../static/img/leon_kennedy.jpg"/>
+    </div>
+    <div class = "container">
+        <p id = "intro"> 
+            Before you depart to your destination, you see the reflection of the police lights shine off the front of your dashboard. <br /> <br />
+            Heeding the signal, you stop the ship, but keep the engines running, just in case. You also prime your weapons. The police contact you by radio. <br /> <br />
+            "Excuse me, but we believe you possess some stolen items. Just give us what we want and we'll let you go." <br /> <br />
+            "Don't try anything suspicious. Our weapons are locked onto your ship."
+        </p>
+        <div id = "demandBox">
+            <p id = "demandText">
+                The police demand: <br /> <br /> 
+            </p>
+            <p id = "itemText"> </p>
+        </div>
+    </div>
+    <div id = "buttons">
+        <button class = "options" onclick = "forfeit()"> Forfeit items </button>
+        <button class = "options" onclick = "fight()"> Fight police (Fighter Skills: {{fskills}}) </button>
+        <button class = "options" onclick = "flee()"> Flee (Pilot Skills: {{pskills}}) </button>
+    </div>
+</body>
+
+<script>
+    var items = JSON.parse({{demand | tojson}})
+    var itemText = document.getElementById("itemText");
+
+    function init() {
+        items.forEach(addToItemText);
+    }
+
+    function addToItemText(item) {
+            var text = item["Name"] + ": " + item["Quantity"] + "<br>";
+            itemText.innerHTML += text;
+    }
+
+    function fight() {
+        $.post("/fight", {items: JSON.stringify(items)}, function(data) {
+            data = JSON.parse(data);
+
+            document.getElementById("intro").innerHTML = "Holding your breath, you open fire on the police cruiser. <br> <br>"
+
+            if (data["result"] == "success") {
+                document.getElementById("intro").innerHTML += "Fortunately enough, your superior fighting skills allow you to emerge victorious. <br>";
+                document.getElementById("intro").innerHTML += "The police cruiser now destroyed, you are free to travel to your intended destination.";
+
+                itemText.innerHTML = "";
+                document.getElementById("demandText").innerHTML = "Congrats, you lawless renegade."
+            } else {
+                var health = data["health"]
+                var lostHealth = data["health_penalty"];
+
+                document.getElementById("intro").innerHTML += "Unfortunately, the police cruiser manages to shut down your ship with an EMP pulse. <br> <br>";
+                document.getElementById("intro").innerHTML += "With an unamused tone, the police officer's voice crackles on the radio: <br>";
+                document.getElementById("intro").innerHTML += "\"You should have followed orders kid.\" <br> <br> Then, you detect the slightest hint of pleasure in his voice: <br>";
+                document.getElementById("intro").innerHTML += "\"Why don't we, ah, yes. That's perfect.\" Suddenly, your ship begins to move, headed for an unknown location.";
+            
+                document.getElementById("demandText").innerHTML = "Penalties:"
+                itemText.innerHTML = "Lost Items: <br>";
+                items.forEach(addToItemText)
+                itemText.innerHTML += "<br>"
+
+                itemText.innerHTML += "You lost " + lostHealth + " health. <br> You now have " + health + " hitpoints left <br> <br>";
+                itemText.innerHTML += "Random Location"
+            }
+
+            loadNewButtons();
+        })
+    }
+
+    function flee() {
+        $.post("/flee", {items: JSON.stringify(items)}, function(data) {
+            data = JSON.parse(data);
+
+            var intro = document.getElementById("intro");
+
+            intro.innerHTML = "Without hesitating, you set the engines to full power and speed away in a desperate attempt to evade the police. <br> <br>"
+
+            if (data["result"] == "success") {
+                intro.innerHTML += "Thanks to your pilot training and some luck, you manage to avoid the police. <br>"
+                intro.innerHTML += "With the police carrier out of sight and mind, you travel to your intended destination."
+
+                itemText.innerHTML = "";
+                document.getElementById("demandText").innerHTML = "Nice flying, ace."
+            } else {
+                var health = data["health"];
+                var credits = data["credits"];
+                var lostHealth = data["health_penalty"];
+                var lostCredits = data["credit_penalty"];
+
+                intro.innerHTML += "Though you give it your best effort, your ship is eventually found by the police and captured. <br> <br>"
+                intro.innerHTML += "\"Nice try kid, but even a lowly cop like me can see through your tricks.\" <br>"
+                intro.innerHTML += "\"We'll be taking those items from you now. You also owe us a fine for disobeying police orders.\" <br>" 
+                intro.innerHTML += " \"I were you, I wouldn't disobey the law.\" <br> <br>"
+                intro.innerHTML += "And with that, the police cruiser departs, leaving you where you were."
+
+                document.getElementById("demandText").innerHTML = "Penalties:"
+                itemText.innerHTML = "Lost Items: <br>";
+                items.forEach(addToItemText)
+                itemText.innerHTML += "<br>"
+
+                itemText.innerHTML += "You lost " + lostHealth + " health. <br> You now have " + health + " hitpoints left <br>";
+                itemText.innerHTML += "You lost " + lostCredits + " credits. <br> You now have " + credits + " credits left";
+            }
+
+            loadNewButtons();
+        })
+    }
+
+    function forfeit() {
+        $.post("/forfeit", {items: JSON.stringify(items)}, function(data) {
+            items = JSON.parse(data)["items"]
+            document.getElementById("intro").innerHTML = "The police take the contraband items. <br> <br> \"Thank you for cooperating.\" ";
+            document.getElementById("demandText").innerHTML = "Current Inventory:"
+            itemText.innerHTML = "";
+            items.forEach(addToItemText);
+
+            loadNewButtons();
+        })
+    }
+
+    function loadNewButtons() {
+        var buttons = document.getElementsByClassName("options")
+
+        for (var i = 0; i < buttons.length; i ++) {
+            buttons[i].style.display = 'none';
+        }
+        renderReturnButton();
+    }
+
+    function renderReturnButton() {
+        var returnButton = document.createElement("BUTTON");
+        returnButton.innerHTML = "Continue";
+        document.getElementById("buttons").appendChild(returnButton);
+
+        returnButton.onclick = function() { window.location.href = "/universe"}
+    }
+</script>
+{% endblock content %}
